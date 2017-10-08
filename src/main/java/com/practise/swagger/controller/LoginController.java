@@ -1,13 +1,16 @@
 package com.practise.swagger.controller;
 
+import com.practise.swagger.model.Subject;
 import com.practise.swagger.model.UserDetail;
 import com.practise.swagger.util.CookieUtil;
 import com.practise.swagger.util.JwtUtil;
 import com.wordnik.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +31,9 @@ public class LoginController {
 
     //Will act as database
     private static final Map<String, String> userData = new HashMap<>();
+    
+    @Autowired
+    Subject subject;
 
     public LoginController() {
         userData.put("pratik", "randomPass");
@@ -47,14 +53,18 @@ public class LoginController {
     )
     @PostMapping(value = "/api/sample/login",
             produces = APPLICATION_JSON_VALUE)
-    public void login(HttpServletResponse response,
-                      @RequestBody UserDetail userDetail) throws Exception {
+    public void login(HttpServletResponse response, @RequestBody UserDetail userDetail) throws Exception {
         if (userDetail.getName() == null || !userData.containsKey(userDetail.getName()) || !userData.get(userDetail.getName()).equals(userDetail.getPassword())) {
             System.out.println("Exception spotted");
             throw new Exception("Sorry mate, you are not authorized to use this");
         }
-        String token = JwtUtil.generateToken(signingKey, userDetail.getName());
+        String token = JwtUtil.generateToken(userDetail.getName(), signingKey);
         CookieUtil.create(response, jwtTokenCookieName, token, false, -1, "localhost");
     }
 
+    @ApiOperation(value = "Retrieving subject from encoded token", notes = "Lets try!")
+    @PostMapping(value = "/api/sample/getSubject", produces = APPLICATION_JSON_VALUE)
+    public Subject getSubject(HttpServletRequest request) {
+        return () -> JwtUtil.getSubject(request, jwtTokenCookieName, signingKey);
+    }
 }

@@ -24,7 +24,7 @@ public class JwtUtil {
         return builder.compact();
     }
 
-    public String getSubject(HttpServletRequest request, String tokenCookieName, String signingKey) {
+    public static String getSubject(HttpServletRequest request, String tokenCookieName, String signingKey) {
         String token = CookieUtil.getValue(request, tokenCookieName);
         if (token == null)
             return null;
